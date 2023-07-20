@@ -14,6 +14,7 @@ class ListPage extends StatefulWidget {
 
 class _ListPageState extends State<ListPage> {
   var _currentcatagory = categories[Categories.vegetables];
+  bool isclicking = false;
   String _textfieldvalue = '';
   int _Quantity = 1;
   final _formkey = GlobalKey<FormState>();
@@ -21,6 +22,9 @@ class _ListPageState extends State<ListPage> {
   void _buttonclicked() async {
     if (_formkey.currentState!.validate()) {
       _formkey.currentState!.save();
+      setState(() {
+        isclicking = true;
+      });
 
       ScaffoldMessenger.of(context)
           .showSnackBar(const SnackBar(content: Text("Data Saved")));
@@ -133,18 +137,28 @@ class _ListPageState extends State<ListPage> {
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     TextButton(
-                        onPressed: () {
-                          _formkey.currentState!.reset();
-                          ScaffoldMessenger.of(context).clearSnackBars();
-                          ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text("Reset Completed")));
-                        },
+                        onPressed: isclicking
+                            ? null
+                            : () {
+                                _formkey.currentState!.reset();
+                                ScaffoldMessenger.of(context).clearSnackBars();
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                        content: Text("Reset Completed")));
+                              },
                         child: const Text("Reset")),
                     const SizedBox(
                       width: 6,
                     ),
                     ElevatedButton(
-                        onPressed: _buttonclicked, child: const Text("sumbit"))
+                        onPressed: isclicking ? null : _buttonclicked,
+                        child: isclicking
+                            ? const SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(),
+                              )
+                            : const Text("sumbit"))
                   ],
                 )
               ],

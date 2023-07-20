@@ -22,6 +22,7 @@ class _ItemsScreensState extends State<ItemsScreens> {
   }
 
   List<GroceryItem> _grocieryitems = [];
+  bool isloading = true;
 
   void additemfrombackend() async {
     final url = Uri.https("flutter-sample-cce1d-default-rtdb.firebaseio.com",
@@ -60,6 +61,12 @@ class _ItemsScreensState extends State<ItemsScreens> {
   @override
   Widget build(BuildContext context) {
     Widget content = const Center(child: Text("No notes"));
+
+    if (isloading) {
+      content = const Center(
+        child: CircularProgressIndicator(),
+      );
+    }
     if (_grocieryitems.isNotEmpty) {
       content = ListView.builder(
           itemCount: _grocieryitems.length,
