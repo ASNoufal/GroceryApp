@@ -39,7 +39,7 @@ class _ListPageState extends State<ListPage> {
             'category': _currentcatagory!.title,
             'quantity': _Quantity
           }));
-      print(response.body);
+
       final Map<String, dynamic> ide = jsonDecode(response.body);
       if (context.mounted) {
         return Navigator.of(context).pop(GroceryItem(

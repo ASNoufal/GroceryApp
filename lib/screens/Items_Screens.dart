@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:veg/model/category.dart';
 import 'package:veg/model/datamodel.dart';
+import 'package:veg/model/dummy_items.dart';
 import 'package:veg/screens/ListPage.dart';
 import 'package:http/http.dart' as http;
 
@@ -23,12 +24,23 @@ class _ItemsScreensState extends State<ItemsScreens> {
 
   List<GroceryItem> _grocieryitems = [];
   bool isloading = true;
+  String? _error;
 
   void additemfrombackend() async {
     final url = Uri.https("flutter-sample-cce1d-default-rtdb.firebaseio.com",
         "Hello_sample.json");
     final response = await http.get(url);
-
+    if (response.body == "null") {
+      setState(() {
+        isloading = false;
+      });
+      return;
+    }
+    if (response.statusCode >= 400) {
+      setState(() {
+        _error = "Plz restart the system";
+      });
+    }
     final Map<String, dynamic> listitems = jsonDecode(response.body);
     final List<GroceryItem> _itemsgrociery = [];
     for (final list in listitems.entries) {
@@ -58,6 +70,17 @@ class _ItemsScreensState extends State<ItemsScreens> {
     });
   }
 
+  void removeitem(GroceryItem item) {
+    final url = Uri.https("flutter-sample-cce1d-default-rtdb.firebaseio.com",
+        "Hello_sample/${item.id}.json");
+
+    final response = http.delete(url);
+
+    setState(() {
+      _grocieryitems.remove(item);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     Widget content = const Center(child: Text("No notes"));
@@ -72,10 +95,10 @@ class _ItemsScreensState extends State<ItemsScreens> {
           itemCount: _grocieryitems.length,
           itemBuilder: (context, index) {
             return Dismissible(
-              key: ValueKey(index),
-              onDismissed: (direction) => setState(() {
-                _grocieryitems.removeAt(index);
-              }),
+              key: ValueKey(_grocieryitems[index]),
+              onDismissed: (direction) {
+                removeitem(_grocieryitems[index]);
+              },
               child: ListTile(
                 title: Text(_grocieryitems[index].name),
                 trailing: Text(_grocieryitems[index].quantity.toString()),
@@ -87,6 +110,9 @@ class _ItemsScreensState extends State<ItemsScreens> {
               ),
             );
           });
+    }
+    if (_error != null) {
+      content = Center(child: Text(_error!));
     }
     return Scaffold(
         appBar: AppBar(
