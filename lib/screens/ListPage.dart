@@ -1,6 +1,9 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:veg/model/category.dart';
 import 'package:veg/model/datamodel.dart';
+import 'package:http/http.dart' as http;
 
 class ListPage extends StatefulWidget {
   const ListPage({super.key});
@@ -15,17 +18,32 @@ class _ListPageState extends State<ListPage> {
   int _Quantity = 1;
   final _formkey = GlobalKey<FormState>();
 
-  void _buttonclicked() {
+  void _buttonclicked() async {
     if (_formkey.currentState!.validate()) {
       _formkey.currentState!.save();
 
       ScaffoldMessenger.of(context)
           .showSnackBar(const SnackBar(content: Text("Data Saved")));
-      Navigator.of(context).pop(GroceryItem(
-          id: DateTime.now().toString(),
-          name: _textfieldvalue,
-          category: _currentcatagory!,
-          quantity: _Quantity));
+      final url = Uri.https("flutter-sample-cce1d-default-rtdb.firebaseio.com",
+          "Hello_sample.json");
+      final response = await http.post(url,
+          headers: {
+            'Content-Type': "Application/json",
+          },
+          body: jsonEncode({
+            'name': _textfieldvalue,
+            'category': _currentcatagory!.title,
+            'quantity': _Quantity
+          }));
+      print(response.body);
+      final Map<String, dynamic> ide = jsonDecode(response.body);
+      if (context.mounted) {
+        return Navigator.of(context).pop(GroceryItem(
+            id: ide['name'],
+            name: _textfieldvalue,
+            category: _currentcatagory!,
+            quantity: _Quantity));
+      }
     }
   }
 

@@ -1,7 +1,10 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:veg/model/category.dart';
 import 'package:veg/model/datamodel.dart';
-import 'package:veg/model/dummy_items.dart';
 import 'package:veg/screens/ListPage.dart';
+import 'package:http/http.dart' as http;
 
 class ItemsScreens extends StatefulWidget {
   const ItemsScreens({super.key});
@@ -11,28 +14,53 @@ class ItemsScreens extends StatefulWidget {
 }
 
 class _ItemsScreensState extends State<ItemsScreens> {
-  final List<GroceryItem> _grocieryitems = [];
+  @override
+  void initState() {
+    additemfrombackend();
+    print("hello");
+    super.initState();
+  }
+
+  List<GroceryItem> _grocieryitems = [];
+
+  void additemfrombackend() async {
+    final url = Uri.https("flutter-sample-cce1d-default-rtdb.firebaseio.com",
+        "Hello_sample.json");
+    final response = await http.get(url);
+
+    final Map<String, dynamic> listitems = jsonDecode(response.body);
+    final List<GroceryItem> _itemsgrociery = [];
+    for (final list in listitems.entries) {
+      final category = categories.entries
+          .firstWhere(
+              (element) => element.value.title == list.value['category'])
+          .value;
+
+      _itemsgrociery.add(GroceryItem(
+          id: list.key,
+          name: list.value['name'],
+          category: category,
+          quantity: list.value['quantity']));
+    }
+    setState(() {
+      _grocieryitems = _itemsgrociery;
+    });
+  }
 
   void _addicons() async {
-    final newitems = await Navigator.push<GroceryItem>((context),
+    final newitem = await Navigator.push<GroceryItem>((context),
         MaterialPageRoute(builder: ((context) {
       return const ListPage();
     })));
-    if (newitems == null) {
-      return;
-    }
-
     setState(() {
-      _grocieryitems.add(newitems);
+      _grocieryitems.add(newitem!);
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    Widget content;
-    if (_grocieryitems.isEmpty) {
-      content = const Center(child: Text("No notes"));
-    } else {
+    Widget content = const Center(child: Text("No notes"));
+    if (_grocieryitems.isNotEmpty) {
       content = ListView.builder(
           itemCount: _grocieryitems.length,
           itemBuilder: (context, index) {
